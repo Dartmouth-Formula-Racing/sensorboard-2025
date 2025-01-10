@@ -188,8 +188,8 @@ int main(void)
 
       // Send values via CAN
       CAN_TxHeaderTypeDef tx_header;
-      uint8_t data[4] = {0};
-      tx_header.DLC = 4;
+      uint8_t data[8] = {0};
+      tx_header.DLC = 8;
 #if CAN_USE_EXTENDED
       tx_header.IDE = CAN_ID_EXT;
       tx_header.ExtId = CAN_BASE_ADDRESS;
@@ -199,13 +199,17 @@ int main(void)
 #endif
       if (HAL_CAN_GetTxMailboxesFreeLevel(&hcan) > 0)
       {
-        // Bytes 0 and 1 left speed
-        data[0] = (((uint16_t)left_velocity)) & 0xFF;
-        data[1] = (((uint16_t)left_velocity) >> 8) & 0xFF;
+        // Bytes 0 - 3 left speed
+        data[0] = (((uint32_t)(left_velocity*1000))) & 0xFF;
+        data[1] = (((uint32_t)(left_velocity*1000)) >> 8) & 0xFF;
+        data[2] = (((uint32_t)(left_velocity*1000)) >> 16) & 0xFF;
+        data[3] = (((uint32_t)(left_velocity*1000)) >> 24) & 0xFF;
 
-        // Bytes 2 and 3 right speed
-        data[2] = (((uint16_t)right_velocity)) & 0xFF;
-        data[3] = (((uint16_t)right_velocity) >> 8) & 0xFF;
+        // Bytes 4 - 7 right speed
+        data[4] = (((uint32_t)(right_velocity*1000))) & 0xFF;
+        data[5] = (((uint32_t)(right_velocity*1000)) >> 8) & 0xFF;
+        data[6] = (((uint32_t)(right_velocity*1000)) >> 16) & 0xFF;
+        data[7] = (((uint32_t)(right_velocity*1000)) >> 24) & 0xFF;
 
         uint32_t tx_mailbox;
         HAL_CAN_AddTxMessage(&hcan, &tx_header, data, &tx_mailbox);
