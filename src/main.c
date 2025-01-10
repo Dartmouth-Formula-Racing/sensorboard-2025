@@ -18,7 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-
+#include "stm32f0xx_hal_can.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -33,7 +33,7 @@
 /* USER CODE BEGIN PD */
 #define SEND_INTERVAL 10 // milliseconds
 #define COUNTS_PER_REVOLUTION 4096 // there are 2048 counts per revolution but we double it because channel A and B get double tiks
-#define CAN_BASE_ADDRESS 0x750 // idk change this
+#define CAN_BASE_ADDRESS 0x65D // idk change this
 #define CAN_USE_EXTENDED 0     // also idk might be yes
 /* USER CODE END PD */
 
@@ -45,39 +45,42 @@
 /* Private variables ---------------------------------------------------------*/
 CAN_HandleTypeDef hcan;
 
-/* USER CODE BEGIN PV */
+//Keep track of current tik counts
 volatile int32_t A_count_left;
 volatile int32_t A_count_right;
 volatile int32_t B_count_left;
 volatile int32_t B_count_right;
 volatile uint32_t Z_count_left;
 volatile uint32_t Z_count_right;
+
+uint32_t last_send = 0;
+//Keep track of previous tik counts 
+int32_t last_A_left;
+int32_t last_A_right;
+int32_t last_B_left;
+int32_t last_B_right;
+uint32_t last_Z_left;
+uint32_t last_Z_right;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_CAN_Init(void);
-/* USER CODE BEGIN PFP */
 
-/* USER CODE END PFP */
 
-/* Private user code ---------------------------------------------------------*/
-/* USER CODE BEGIN 0 */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
-    static uint8_t A_left_last = 0;
-    static uint8_t B_left_last = 0;
-    static uint8_t A_right_last = 0;
-    static uint8_t B_right_last = 0;
-    
     // Read current state of all pins (high or low) for quadrature
     uint8_t A_left_current = HAL_GPIO_ReadPin(A_left_tic_GPIO_Port, A_left_tic_Pin);
     uint8_t B_left_current = HAL_GPIO_ReadPin(B_left_tic_GPIO_Port, B_left_tic_Pin);
     uint8_t A_right_current = HAL_GPIO_ReadPin(A_right_tic_GPIO_Port, A_right_tic_Pin);
     uint8_t B_right_current = HAL_GPIO_ReadPin(B_right_tic_GPIO_Port, B_right_tic_Pin);
-    // Assume clockwise rotation has channel A leading channel B and is forward movement
 
-    // Left wheel quadrature decoding
+    // RIGHT SIDE: Counter-clockwise rotation has channel A leading channel B and is forward movement
+    // LEFT SIDE: Clockwise rotation has channel A leading channel B and is forward movement
+
+
+    // Edge trigger on A left wheel
     switch(GPIO_Pin){
       case A_left_tic_Pin:
         if(A_left_current == 1) {  // Rising edge on A
@@ -89,6 +92,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
           }
         break;
 
+      // Edge trigger on B left wheel
       case B_left_tic_Pin:
         if(B_left_current == 1) {  // Rising edge on B
           if(A_left_current == 0) B_count_left--;  // Counter-clockwise
@@ -99,43 +103,38 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
           }
         break;
 
-      // follow same logic for right side
+      // Edge trigger on A right wheel
       case A_right_tic_Pin:
         if(A_right_current == 1) {
-          if(B_right_current == 1) A_count_right--;
-          else A_count_right++;
+          if(B_right_current == 1) A_count_right++;
+          else A_count_right--;
       } else {
-          if(B_right_current == 0) A_count_right--;
-          else A_count_right++;
+          if(B_right_current == 0) A_count_right++;
+          else A_count_right--;
         }
         break;
 
+      // Edge trigger on B right wheel
       case B_right_tic_Pin:
         if(B_right_current == 1) {
-          if(A_right_current == 0) B_count_right--;
-          else B_count_right++;
+          if(A_right_current == 0) B_count_right++;
+          else B_count_right--;
       } else {
-          if(A_right_current == 1) B_count_right--;
-          else B_count_right++;
+          if(A_right_current == 1) B_count_right++;
+          else B_count_right--;
         }
         break;
-    }
 
-    // Update last states for quadrature
-    A_left_last = A_left_current;
-    B_left_last = B_left_current;
-    A_right_last = A_right_current;
-    B_right_last = B_right_current;
-
-    // Z channel handling for higher speeds (just increments forward)
-    if(GPIO_Pin == Z_left_tic_Pin) {
+      // Z channel handling for higher speeds (just increments forward)
+      case Z_left_tic_Pin:
         Z_count_left++;
-    }
-    else if(GPIO_Pin == Z_right_tic_Pin) {
+        break;
+
+      case Z_right_tic_Pin:
         Z_count_right++;
+        break;
     }
 }
-/* USER CODE END 0 */
 
 /**
  * @brief  The application entry point.
@@ -143,40 +142,15 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
  */
 int main(void)
 {
-
-  /* USER CODE BEGIN 1 */
-
-  /* USER CODE END 1 */
-
-  /* MCU Configuration--------------------------------------------------------*/
-
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
-
-  /* USER CODE BEGIN Init */
-
-  /* USER CODE END Init */
 
   /* Configure the system clock */
   SystemClock_Config();
 
-  /* USER CODE BEGIN SysInit */
-
-  /* USER CODE END SysInit */
-
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_CAN_Init();
-
-  /* USER CODE BEGIN 2 */
-  uint32_t last_send = 0;
-  int32_t last_A_left;
-  int32_t last_A_right;
-  int32_t last_B_left;
-  int32_t last_B_right;
-  uint32_t last_Z_left;
-  uint32_t last_Z_right;
-  /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
@@ -191,18 +165,18 @@ int main(void)
 
       // Calculate deltas and average in one step 
       // Use >> 1 to right shift by 1 bit for division by 2 (more efficient)
-      int32_t left_count_delta = ((A_count_left - last_A_left) + (B_count_left - last_B_left)) >> 1; 
-      int32_t right_count_delta = ((A_count_right - last_A_right) + (B_count_right - last_B_right)) >> 1;
-      uint32_t Z_countLeft_delta = Z_count_left - last_Z_left;
-      uint32_t Z_countRight_delta = Z_count_right - last_Z_right;
+      volatile int32_t left_count_delta = ((A_count_left - last_A_left) + (B_count_left - last_B_left)) >> 1; 
+      volatile int32_t right_count_delta = ((A_count_right - last_A_right) + (B_count_right - last_B_right)) >> 1;
+      volatile uint32_t Z_countLeft_delta = Z_count_left - last_Z_left;
+      volatile uint32_t Z_countRight_delta = Z_count_right - last_Z_right;
 
       // Calculate speeds directly from averaged counts
-      float left_velocity = ((float)left_count_delta / COUNTS_PER_REVOLUTION) * (1000 * 60 / delta_t);
-      float right_velocity = ((float)right_count_delta / COUNTS_PER_REVOLUTION) * (1000 * 60 / delta_t);
+      volatile float left_velocity = ((float)left_count_delta / COUNTS_PER_REVOLUTION) * (1000 * 60 / delta_t);
+      volatile float right_velocity = ((float)right_count_delta / COUNTS_PER_REVOLUTION) * (1000 * 60 / delta_t);
 
       // Calculate Z values by looking at difference in Z counts
-      float left_speed_Z = ((float)Z_countLeft_delta) * (1000 * 60 / delta_t);
-      float right_speed_Z = ((float)Z_countRight_delta) * (1000 * 60 / delta_t);
+      volatile float left_speed_Z = ((float)Z_countLeft_delta) * (1000 * 60 / delta_t) / 2;// divide by 2 because z counts are double
+      volatile float right_speed_Z = ((float)Z_countRight_delta) * (1000 * 60 / delta_t) / 2;
 
       // Store current count values for next run through
       last_A_left = A_count_left;
@@ -214,14 +188,14 @@ int main(void)
 
       // Send values via CAN
       CAN_TxHeaderTypeDef tx_header;
-      uint8_t data[8] = {0};
-      tx_header.DLC = 8;
+      uint8_t data[4] = {0};
+      tx_header.DLC = 4;
 #if CAN_USE_EXTENDED
       tx_header.IDE = CAN_ID_EXT;
-      tx_header.ExtId = CAN_BASE;
+      tx_header.ExtId = CAN_BASE_ADDRESS;
 #else
       tx_header.IDE = CAN_ID_STD;
-      tx_header.StdId = CAN_BASE;
+      tx_header.StdId = CAN_BASE_ADDRESS;
 #endif
       if (HAL_CAN_GetTxMailboxesFreeLevel(&hcan) > 0)
       {
@@ -233,7 +207,7 @@ int main(void)
         data[2] = (((uint16_t)right_velocity)) & 0xFF;
         data[3] = (((uint16_t)right_velocity) >> 8) & 0xFF;
 
-        uint16_t tx_mailbox;
+        uint32_t tx_mailbox;
         HAL_CAN_AddTxMessage(&hcan, &tx_header, data, &tx_mailbox);
       }
       last_send = now;
@@ -352,13 +326,13 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pins : A_right_tic_Pin B_right_tic_Pin Z_right_tic_Pin */
   GPIO_InitStruct.Pin = A_right_tic_Pin | B_right_tic_Pin | Z_right_tic_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING; /* set the pin to trigger on rising an falling edges*/
-  GPIO_InitStruct.Pull = GPIO_NOPULL; /* no internal pull up or down resistors + voltage*/
+  GPIO_InitStruct.Pull = GPIO_PULLUP; /* no internal pull up or down resistors + voltage*/
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : A_left_tic_Pin B_left_tic_Pin Z_left_tic_Pin */
   GPIO_InitStruct.Pin = A_left_tic_Pin | B_left_tic_Pin | Z_left_tic_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING; /* set the pin to trigger on rising an falling edges*/
-  GPIO_InitStruct.Pull = GPIO_NOPULL; /* no internal pull up or down resistors + voltage*/
+  GPIO_InitStruct.Pull = GPIO_PULLUP; /* no internal pull up or down resistors + voltage*/
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/

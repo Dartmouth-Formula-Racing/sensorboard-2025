@@ -57,24 +57,37 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define A_right_tic_Pin GPIO_PIN_5
+#define Z_right_tic_Pin GPIO_PIN_5    // Now receives Z_right signal
+#define Z_right_tic_GPIO_Port GPIOA //swapped
+#define Z_right_tic_EXTI_IRQn EXTI4_15_IRQn
+
+// Original: #define B_right_tic_Pin GPIO_PIN_6
+#define B_right_tic_Pin GPIO_PIN_6    // Now recieves A_right signal
+#define B_right_tic_GPIO_Port GPIOA //swapped
+#define B_right_tic_EXTI_IRQn EXTI4_15_IRQn
+
+// Original: #define Z_right_tic_Pin GPIO_PIN_7
+#define A_right_tic_Pin GPIO_PIN_7    // Now receives B_right signal
 #define A_right_tic_GPIO_Port GPIOA
 #define A_right_tic_EXTI_IRQn EXTI4_15_IRQn
-#define B_right_tic_Pin GPIO_PIN_6
-#define B_right_tic_GPIO_Port GPIOA
-#define B_right_tic_EXTI_IRQn EXTI4_15_IRQn
-#define Z_right_tic_Pin GPIO_PIN_7
-#define Z_right_tic_GPIO_Port GPIOA
-#define Z_right_tic_EXTI_IRQn EXTI4_15_IRQn
-#define A_left_tic_Pin GPIO_PIN_13
+
+// Original: #define A_left_tic_Pin GPIO_PIN_13
+#define A_left_tic_Pin GPIO_PIN_13    // This stays the same
 #define A_left_tic_GPIO_Port GPIOB
 #define A_left_tic_EXTI_IRQn EXTI4_15_IRQn
-#define B_left_tic_Pin GPIO_PIN_14
-#define B_left_tic_GPIO_Port GPIOB
-#define B_left_tic_EXTI_IRQn EXTI4_15_IRQn
-#define Z_left_tic_Pin GPIO_PIN_15
+
+// Original: #define B_left_tic_Pin GPIO_PIN_14
+#define Z_left_tic_Pin GPIO_PIN_14    // Now receives B_left signal
 #define Z_left_tic_GPIO_Port GPIOB
 #define Z_left_tic_EXTI_IRQn EXTI4_15_IRQn
+
+// Original: #define Z_left_tic_Pin GPIO_PIN_15
+#define B_left_tic_Pin GPIO_PIN_15    // Now receives Z_left signal
+#define B_left_tic_GPIO_Port GPIOB
+#define B_left_tic_EXTI_IRQn EXTI4_15_IRQn
+
+
+
 
 /* USER CODE BEGIN Private defines */
 
