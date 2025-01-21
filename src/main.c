@@ -106,22 +106,22 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
       // Edge trigger on A right wheel
       case A_right_tic_Pin:
         if(A_right_current == 1) {
-          if(B_right_current == 1) A_count_right++;
-          else A_count_right--;
+          if(B_right_current == 1) A_count_right--;
+          else A_count_right++;
       } else {
-          if(B_right_current == 0) A_count_right++;
-          else A_count_right--;
+          if(B_right_current == 0) A_count_right--;
+          else A_count_right++;
         }
         break;
 
       // Edge trigger on B right wheel
       case B_right_tic_Pin:
         if(B_right_current == 1) {
-          if(A_right_current == 0) B_count_right++;
-          else B_count_right--;
+          if(A_right_current == 0) B_count_right--;
+          else B_count_right++;
       } else {
-          if(A_right_current == 1) B_count_right++;
-          else B_count_right--;
+          if(A_right_current == 1) B_count_right--;
+          else B_count_right++;
         }
         break;
 
@@ -167,16 +167,16 @@ int main(void)
       // Use >> 1 to right shift by 1 bit for division by 2 (more efficient)
       volatile int32_t left_count_delta = ((A_count_left - last_A_left) + (B_count_left - last_B_left)) >> 1; 
       volatile int32_t right_count_delta = ((A_count_right - last_A_right) + (B_count_right - last_B_right)) >> 1;
-      volatile uint32_t Z_countLeft_delta = Z_count_left - last_Z_left;
-      volatile uint32_t Z_countRight_delta = Z_count_right - last_Z_right;
+      // volatile uint32_t Z_countLeft_delta = Z_count_left - last_Z_left;
+      // volatile uint32_t Z_countRight_delta = Z_count_right - last_Z_right;
 
-      // Calculate speeds directly from averaged counts
+      // Calculate RPM values directly from averaged counts
       volatile float left_velocity = ((float)left_count_delta / COUNTS_PER_REVOLUTION) * (1000 * 60 / delta_t);
       volatile float right_velocity = ((float)right_count_delta / COUNTS_PER_REVOLUTION) * (1000 * 60 / delta_t);
 
-      // Calculate Z values by looking at difference in Z counts
-      volatile float left_speed_Z = ((float)Z_countLeft_delta) * (1000 * 60 / delta_t) / 2;// divide by 2 because z counts are double
-      volatile float right_speed_Z = ((float)Z_countRight_delta) * (1000 * 60 / delta_t) / 2;
+      // Calculate Z speeds by looking at difference in Z counts
+      // volatile float left_speed_Z = ((float)Z_countLeft_delta) * (1000 * 60 / delta_t) / 2;// divide by 2 because z counts are double
+      // volatile float right_speed_Z = ((float)Z_countRight_delta) * (1000 * 60 / delta_t) / 2;
 
       // Store current count values for next run through
       last_A_left = A_count_left;
@@ -320,8 +320,6 @@ static void MX_CAN_Init(void)
 static void MX_GPIO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
-  /* USER CODE BEGIN MX_GPIO_Init_1 */
-  /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOA_CLK_ENABLE();
