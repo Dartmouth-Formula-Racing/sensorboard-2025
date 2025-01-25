@@ -22,17 +22,10 @@
 #include <filter.h>
 
 /* Private define ------------------------------------------------------------*/
-/* USER CODE BEGIN PD */
 #define SEND_INTERVAL 10 // milliseconds
 #define COUNTS_PER_REVOLUTION 4096 // there are 2048 counts per revolution but we double it because channel A and B get double tiks
 #define CAN_BASE_ADDRESS 0x65D // CAN address
 #define CAN_USE_EXTENDED 0     // also idk might be yes
-/* USER CODE END PD */
-
-/* Private macro -------------------------------------------------------------*/
-/* USER CODE BEGIN PM */
-
-/* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
 CAN_HandleTypeDef hcan;
@@ -42,8 +35,6 @@ volatile int32_t A_count_left;
 volatile int32_t A_count_right;
 volatile int32_t B_count_left;
 volatile int32_t B_count_right;
-// volatile uint32_t Z_count_left;
-// volatile uint32_t Z_count_right;
 
 uint32_t last_send = 0;
 
@@ -52,8 +43,6 @@ int32_t last_A_left;
 int32_t last_A_right;
 int32_t last_B_left;
 int32_t last_B_right;
-// uint32_t last_Z_left;
-// uint32_t last_Z_right;
 
 sample_window window = {// Initialize sample window with all speeds = 0 and sample count = 0
     .data_array = {0},
@@ -123,15 +112,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
           else B_count_right++;
         }
         break;
-
-      // Z channel handling for higher speeds (just increments forward)
-      // case Z_left_tic_Pin:
-      //   Z_count_left++;
-      //   break;
-
-      // case Z_right_tic_Pin:
-      //   Z_count_right++;
-      //   break;
     }
 }
 
@@ -164,14 +144,12 @@ int main(void)
 
       // Calculate deltas and average in one step 
       // Use >> 1 to right shift by 1 bit for division by 2 (more efficient)
-      volatile int32_t left_count_delta = ((A_count_left - last_A_left) + (B_count_left - last_B_left)) >> 1; 
-      volatile int32_t right_count_delta = ((A_count_right - last_A_right) + (B_count_right - last_B_right)) >> 1;
-      // volatile uint32_t Z_countLeft_delta = Z_count_left - last_Z_left;
-      // volatile uint32_t Z_countRight_delta = Z_count_right - last_Z_right;
+      int32_t left_count_delta = ((A_count_left - last_A_left) + (B_count_left - last_B_left)) >> 1; 
+      int32_t right_count_delta = ((A_count_right - last_A_right) + (B_count_right - last_B_right)) >> 1;
 
       // Calculate RPM values directly from averaged counts
-      volatile float left_velocity = ((float)left_count_delta / COUNTS_PER_REVOLUTION) * (1000 * 60 / delta_t);
-      volatile float right_velocity = ((float)right_count_delta / COUNTS_PER_REVOLUTION) * (1000 * 60 / delta_t);
+      float left_velocity = ((float)left_count_delta / COUNTS_PER_REVOLUTION) * (1000 * 60 / delta_t);
+      float right_velocity = ((float)right_count_delta / COUNTS_PER_REVOLUTION) * (1000 * 60 / delta_t);
 
       // Filter the velocities
 #if FILTER_TYPE == 1
@@ -183,17 +161,11 @@ int main(void)
       right_velocity *= RPM_SCALE_FACTOR;
 #endif
 
-      // Calculate Z speeds by looking at difference in Z counts
-      // volatile float left_speed_Z = ((float)Z_countLeft_delta) * (1000 * 60 / delta_t) / 2;// divide by 2 because z counts are double
-      // volatile float right_speed_Z = ((float)Z_countRight_delta) * (1000 * 60 / delta_t) / 2;
-
       // Store current count values for next run through
       last_A_left = A_count_left;
       last_B_left = B_count_left;
-      // last_Z_left = Z_count_left;
       last_A_right = A_count_right;
       last_B_right = B_count_right;
-      // last_Z_right = Z_count_right;
 
       // Send values via CAN
       CAN_TxHeaderTypeDef tx_header;
