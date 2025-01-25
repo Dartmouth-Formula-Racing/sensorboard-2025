@@ -19,21 +19,13 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f0xx_hal_can.h"
-/* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
-
-/* USER CODE END Includes */
-
-/* Private typedef -----------------------------------------------------------*/
-/* USER CODE BEGIN PTD */
-
-/* USER CODE END PTD */
+#include <filter.h>
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define SEND_INTERVAL 10 // milliseconds
 #define COUNTS_PER_REVOLUTION 4096 // there are 2048 counts per revolution but we double it because channel A and B get double tiks
-#define CAN_BASE_ADDRESS 0x65D // idk change this
+#define CAN_BASE_ADDRESS 0x65D // CAN address
 #define CAN_USE_EXTENDED 0     // also idk might be yes
 /* USER CODE END PD */
 
@@ -50,17 +42,24 @@ volatile int32_t A_count_left;
 volatile int32_t A_count_right;
 volatile int32_t B_count_left;
 volatile int32_t B_count_right;
-volatile uint32_t Z_count_left;
-volatile uint32_t Z_count_right;
+// volatile uint32_t Z_count_left;
+// volatile uint32_t Z_count_right;
 
 uint32_t last_send = 0;
+
 //Keep track of previous tik counts 
 int32_t last_A_left;
 int32_t last_A_right;
 int32_t last_B_left;
 int32_t last_B_right;
-uint32_t last_Z_left;
-uint32_t last_Z_right;
+// uint32_t last_Z_left;
+// uint32_t last_Z_right;
+
+sample_window window = {// Initialize sample window with all speeds = 0 and sample count = 0
+    .data_array = {0},
+    .sample_count = 0
+};
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -126,13 +125,13 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
         break;
 
       // Z channel handling for higher speeds (just increments forward)
-      case Z_left_tic_Pin:
-        Z_count_left++;
-        break;
+      // case Z_left_tic_Pin:
+      //   Z_count_left++;
+      //   break;
 
-      case Z_right_tic_Pin:
-        Z_count_right++;
-        break;
+      // case Z_right_tic_Pin:
+      //   Z_count_right++;
+      //   break;
     }
 }
 
@@ -174,6 +173,16 @@ int main(void)
       volatile float left_velocity = ((float)left_count_delta / COUNTS_PER_REVOLUTION) * (1000 * 60 / delta_t);
       volatile float right_velocity = ((float)right_count_delta / COUNTS_PER_REVOLUTION) * (1000 * 60 / delta_t);
 
+      // Filter the velocities
+#if FILTER_TYPE == 1
+      left_velocity = Roll_average(&window, left_velocity);
+      right_velocity = Roll_average(&window, right_velocity);
+#else if FILTER_TYPE == 0
+      // Dont filter the velocities, just scale them up
+      left_velocity *= RPM_SCALE_FACTOR;
+      right_velocity *= RPM_SCALE_FACTOR;
+#endif
+
       // Calculate Z speeds by looking at difference in Z counts
       // volatile float left_speed_Z = ((float)Z_countLeft_delta) * (1000 * 60 / delta_t) / 2;// divide by 2 because z counts are double
       // volatile float right_speed_Z = ((float)Z_countRight_delta) * (1000 * 60 / delta_t) / 2;
@@ -181,10 +190,10 @@ int main(void)
       // Store current count values for next run through
       last_A_left = A_count_left;
       last_B_left = B_count_left;
-      last_Z_left = Z_count_left;
+      // last_Z_left = Z_count_left;
       last_A_right = A_count_right;
       last_B_right = B_count_right;
-      last_Z_right = Z_count_right;
+      // last_Z_right = Z_count_right;
 
       // Send values via CAN
       CAN_TxHeaderTypeDef tx_header;
@@ -200,16 +209,16 @@ int main(void)
       if (HAL_CAN_GetTxMailboxesFreeLevel(&hcan) > 0)
       {
         // Bytes 0 - 3 left speed
-        data[0] = (((uint32_t)(left_velocity*1000))) & 0xFF;
-        data[1] = (((uint32_t)(left_velocity*1000)) >> 8) & 0xFF;
-        data[2] = (((uint32_t)(left_velocity*1000)) >> 16) & 0xFF;
-        data[3] = (((uint32_t)(left_velocity*1000)) >> 24) & 0xFF;
+        data[0] = (((uint32_t)(left_velocity))) & 0xFF;
+        data[1] = (((uint32_t)(left_velocity)) >> 8) & 0xFF;
+        data[2] = (((uint32_t)(left_velocity)) >> 16) & 0xFF;
+        data[3] = (((uint32_t)(left_velocity)) >> 24) & 0xFF;
 
         // Bytes 4 - 7 right speed
-        data[4] = (((uint32_t)(right_velocity*1000))) & 0xFF;
-        data[5] = (((uint32_t)(right_velocity*1000)) >> 8) & 0xFF;
-        data[6] = (((uint32_t)(right_velocity*1000)) >> 16) & 0xFF;
-        data[7] = (((uint32_t)(right_velocity*1000)) >> 24) & 0xFF;
+        data[4] = (((uint32_t)(right_velocity))) & 0xFF;
+        data[5] = (((uint32_t)(right_velocity)) >> 8) & 0xFF;
+        data[6] = (((uint32_t)(right_velocity)) >> 16) & 0xFF;
+        data[7] = (((uint32_t)(right_velocity)) >> 24) & 0xFF;
 
         uint32_t tx_mailbox;
         HAL_CAN_AddTxMessage(&hcan, &tx_header, data, &tx_mailbox);

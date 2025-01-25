@@ -29,65 +29,9 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f0xx_hal.h"
 
-/* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
-
-/* USER CODE END Includes */
-
-/* Exported types ------------------------------------------------------------*/
-/* USER CODE BEGIN ET */
-
-/* USER CODE END ET */
-
-/* Exported constants --------------------------------------------------------*/
-/* USER CODE BEGIN EC */
-
-/* USER CODE END EC */
-
-/* Exported macro ------------------------------------------------------------*/
-/* USER CODE BEGIN EM */
-
-/* USER CODE END EM */
-
-/* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
 
-/* USER CODE BEGIN EFP */
-
-/* USER CODE END EFP */
-
 /* Private defines -----------------------------------------------------------*/
-
-// Original: #define Z_right_tic_Pin GPIO_PIN_7
-// #define Z_right_tic_Pin GPIO_PIN_5    // Now receives A_right signal
-// #define Z_right_tic_GPIO_Port GPIOA
-// #define Z_right_tic_EXTI_IRQn EXTI4_15_IRQn
-
-// // Original: #define B_right_tic_Pin GPIO_PIN_6
-// #define B_right_tic_Pin GPIO_PIN_6    // This stays the same
-// #define B_right_tic_GPIO_Port GPIOA 
-// #define B_right_tic_EXTI_IRQn EXTI4_15_IRQn
-
-// // Original: #define A_right_tic_Pin GPIO_PIN_5
-// #define A_right_tic_Pin GPIO_PIN_7    // Now receives Z_right signal
-// #define A_right_tic_GPIO_Port GPIOA
-// #define A_right_tic_EXTI_IRQn EXTI4_15_IRQn
-
-// // Original: #define Z_left_tic_Pin GPIO_PIN_15
-// #define Z_left_tic_Pin GPIO_PIN_14    // Now receives B_left signal
-// #define Z_left_tic_GPIO_Port GPIOB
-// #define Z_left_tic_EXTI_IRQn EXTI4_15_IRQn
-
-// // Original: #define B_left_tic_Pin GPIO_PIN_14
-// #define B_left_tic_Pin GPIO_PIN_15    // Now receives Z_left signal
-// #define B_left_tic_GPIO_Port GPIOB
-// #define B_left_tic_EXTI_IRQn EXTI4_15_IRQn
-
-// // Original: #define A_left_tic_Pin GPIO_PIN_13
-// #define A_left_tic_Pin GPIO_PIN_13    // This stays the same
-// #define A_left_tic_GPIO_Port GPIOB
-// #define A_left_tic_EXTI_IRQn EXTI4_15_IRQn
-
 
 // Original: #define Z_right_tic_Pin GPIO_PIN_7
 #define Z_right_tic_Pin GPIO_PIN_7
