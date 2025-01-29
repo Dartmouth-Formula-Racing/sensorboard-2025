@@ -92,7 +92,8 @@ int main(void)
       right_velocity *= RPM_SCALE_FACTOR;
 
       // Send velocities via CAN
-      send_can(left_velocity, right_velocity, left_velocity_filtered, right_velocity_filtered);
+      send_can1(left_velocity, right_velocity);
+      send_can2(left_velocity_filtered, right_velocity_filtered);
 
       last_send = now; // Update current time
     }

@@ -6,7 +6,8 @@
 
 
 // Function to send input data to predefined CAN addresses
-void send_can(float left_velocity, float right_velocity, float left_velocity_filtered, float right_velocity_filtered);
+void send_can1(float left_velocity, float right_velocity);
+void send_can2(float left_velocity, float right_velocity);
 
 // Function to initialize CAN communication
 void MX_CAN_Init(void);
