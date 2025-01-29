@@ -1,4 +1,9 @@
-/* USER CODE BEGIN Header */
+/*Author: Sasha Ries
+ * Date: 1/25/25
+ * File: main.c
+ * Description: Initializes all functions and constants used in main.c
+ */
+
 /**
   ******************************************************************************
   * @file           : main.h
@@ -29,9 +34,10 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f0xx_hal.h"
 
+
 void Error_Handler(void);
 
-/* Private defines -----------------------------------------------------------*/
+/* ---------------------- Define GPIO pins -------------------------------------*/
 
 // Original: #define Z_right_tic_Pin GPIO_PIN_7
 #define Z_right_tic_Pin GPIO_PIN_7
@@ -64,12 +70,6 @@ void Error_Handler(void);
 #define A_left_tic_EXTI_IRQn EXTI4_15_IRQn
 
 
-
-
-
-/* USER CODE BEGIN Private defines */
-
-/* USER CODE END Private defines */
 
 #ifdef __cplusplus
 }
