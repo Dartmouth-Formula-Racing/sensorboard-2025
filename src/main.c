@@ -28,7 +28,8 @@
 #include "can.h"
 #include "wheel_speed.h"
 
-#define SEND_INTERVAL 10           // milliseconds
+#define SEND_INTERVAL 3           // milliseconds
+
 
 /*----------------------------- Global structs -----------------------------*/
 
@@ -41,6 +42,8 @@ sample_window right_window = { // Initialize right sample window with all speeds
     .position = 0};
 
 uint32_t last_send = 0; // Variable to keep track of time
+
+
 
 
 /* Private function prototypes -----------------------------------------------*/
@@ -81,7 +84,7 @@ int main(void)
 #if FILTER_TYPE == 1
       float left_velocity_filtered = Roll_average(&left_window, left_velocity);
       float right_velocity_filtered = Roll_average(&right_window, right_velocity);
-#else if FILTER_TYPE == 0
+#elif FILTER_TYPE == 0
       // Dont filter the velocities, just scale them up
       left_velocity *= RPM_SCALE_FACTOR;
       right_velocity *= RPM_SCALE_FACTOR;
@@ -92,8 +95,8 @@ int main(void)
       right_velocity *= RPM_SCALE_FACTOR;
 
       // Send velocities via CAN
-      send_can1(left_velocity, right_velocity);
-      send_can2(left_velocity_filtered, right_velocity_filtered);
+      send_can(left_velocity, right_velocity, 0);
+      send_can(left_velocity_filtered, right_velocity_filtered, 1);
 
       last_send = now; // Update current time
     }

@@ -21,43 +21,7 @@ CAN_HandleTypeDef hcan;
  */
 
 /* ========================= Functions to send data via CAN =========================*/
-void send_can1(float left_velocity, float right_velocity){
-
-    CAN_TxHeaderTypeDef tx_header;
-    tx_header.DLC = 8;
-    tx_header.RTR = CAN_RTR_DATA;
-#if CAN_USE_EXTENDED
-    tx_header.IDE = CAN_ID_EXT;
-    tx_header.ExtId = CAN_BASE_ADDRESS;
-#else
-    tx_header.IDE = CAN_ID_STD;
-    tx_header.StdId = CAN_BASE_ADDRESS;
-#endif
-
-    uint8_t data[8] = {0};
-    uint32_t tx_mailbox;
-
-    // Bytes 0 - 3 left speed
-    data[0] = ((uint32_t)(left_velocity)) & 0xFF;
-    data[1] = (((uint32_t)(left_velocity)) >> 8) & 0xFF;
-    data[2] = (((uint32_t)(left_velocity)) >> 16) & 0xFF;
-    data[3] = (((uint32_t)(left_velocity)) >> 24) & 0xFF;
-
-    // Bytes 4 - 7 right speed
-    data[4] = ((uint32_t)(right_velocity)) & 0xFF;
-    data[5] = (((uint32_t)(right_velocity)) >> 8) & 0xFF;
-    data[6] = (((uint32_t)(right_velocity)) >> 16) & 0xFF;
-    data[7] = (((uint32_t)(right_velocity)) >> 24) & 0xFF;
-
-    // Actually send the bytes of data to CAN addresses
-    if (HAL_CAN_GetTxMailboxesFreeLevel(&hcan) > 0){
-        if (HAL_CAN_AddTxMessage(&hcan, &tx_header, data, &tx_mailbox) != HAL_OK) {
-            Error_Handler();
-        }
-    }
-}
-
-void send_can2(float left_velocity, float right_velocity){
+void send_can(float left_velocity, float right_velocity, uint16_t offset){
     
     // Second CAN Address
     CAN_TxHeaderTypeDef tx_header2;
@@ -65,26 +29,26 @@ void send_can2(float left_velocity, float right_velocity){
     tx_header2.RTR = CAN_RTR_DATA;
 #if CAN_USE_EXTENDED
     tx_header_filtered.IDE = CAN_ID_EXT;
-    tx_header_filtered.ExtId = CAN_BASE_ADDRESS + 1;
+    tx_header_filtered.ExtId = CAN_BASE_ADDRESS + offset;
 #else
     tx_header2.IDE = CAN_ID_STD;
-    tx_header2.StdId = CAN_BASE_ADDRESS + 1;
+    tx_header2.StdId = CAN_BASE_ADDRESS + offset;
 #endif
 
     uint8_t data[8] = {0};
     uint32_t tx_mailbox;
 
     // Bytes 0 - 3 left speed
-    data[0] = ((uint32_t)(left_velocity)) & 0xFF;
-    data[1] = (((uint32_t)(left_velocity)) >> 8) & 0xFF;
-    data[2] = (((uint32_t)(left_velocity)) >> 16) & 0xFF;
-    data[3] = (((uint32_t)(left_velocity)) >> 24) & 0xFF;
+    data[0] = (((uint32_t)(left_velocity)) >> 24) & 0xFF;
+    data[1] = (((uint32_t)(left_velocity)) >> 16) & 0xFF;
+    data[2] = (((uint32_t)(left_velocity)) >> 8) & 0xFF;
+    data[3] = ((uint32_t)(left_velocity)) & 0xFF;
 
     // Bytes 4 - 7 right speed
-    data[4] = ((uint32_t)(right_velocity)) & 0xFF;
-    data[5] = (((uint32_t)(right_velocity)) >> 8) & 0xFF;
-    data[6] = (((uint32_t)(right_velocity)) >> 16) & 0xFF;
-    data[7] = (((uint32_t)(right_velocity)) >> 24) & 0xFF;
+    data[4] = (((uint32_t)(right_velocity)) >> 24) & 0xFF;
+    data[5] = (((uint32_t)(right_velocity)) >> 16) & 0xFF;
+    data[6] = (((uint32_t)(right_velocity)) >> 8) & 0xFF;
+    data[7] = ((uint32_t)(right_velocity)) & 0xFF;
 
     // Actually send the bytes of data to CAN addresses
     if (HAL_CAN_GetTxMailboxesFreeLevel(&hcan) > 0){

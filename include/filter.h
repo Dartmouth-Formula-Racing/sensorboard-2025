@@ -7,7 +7,7 @@
 #include <main.h>
 #include <stdbool.h>
 
-#define WINDOW_SIZE 8 // Number of samples used in filtering
+#define WINDOW_SIZE 4 // Number of samples used in filtering
 #define FILTER_TYPE 1 // To pick what kind of filter used in preprocessing
 #define RPM_SCALE_FACTOR 1000 // Scale factor to increase resolution
 

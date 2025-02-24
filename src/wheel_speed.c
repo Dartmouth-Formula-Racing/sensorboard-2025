@@ -46,7 +46,7 @@ float calculate_right_velocity(uint32_t delta_t){
     int32_t right_count_delta = ((A_count_right - last_A_right) + (B_count_right - last_B_right)) >> 2;
 
     // Calculate RPM values directly from averaged counts
-    float right_velocity = ((float)right_count_delta / COUNTS_PER_REVOLUTION) * (1000 * 60 / delta_t);
+    float right_velocity = ((float)right_count_delta / COUNTS_PER_REVOLUTION) * (1000.0 * 60.0 / delta_t);
 
     // Store current count values for next run through
     last_A_right = A_count_right;
