@@ -150,20 +150,14 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pins : A_right_tic_Pin B_right_tic_Pin Z_right_tic_Pin */
-  // GPIO_InitStruct.Pin = A_right_tic_Pin | B_right_tic_Pin | Z_right_tic_Pin;
-  // GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING; /* set the pin to trigger on rising an falling edges*/
-  // GPIO_InitStruct.Pull = GPIO_PULLUP;                 /* no internal pull up or down resistors + voltage*/
-  GPIO_InitStruct.Pin = A_right_tic_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING; /* set the pin to trigger on rising an falling edges*/
+  GPIO_InitStruct.Pin = A_right_tic_Pin | B_right_tic_Pin | Z_right_tic_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING; /* set the pin to trigger on rising an falling edges*/
   GPIO_InitStruct.Pull = GPIO_PULLUP;                 /* no internal pull up or down resistors + voltage*/
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : A_left_tic_Pin B_left_tic_Pin Z_left_tic_Pin */
-  // GPIO_InitStruct.Pin = A_left_tic_Pin | B_left_tic_Pin | Z_left_tic_Pin;
-  // GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING; /* set the pin to trigger on rising an falling edges*/
-  // GPIO_InitStruct.Pull = GPIO_PULLUP;                 /* no internal pull up or down resistors + voltage*/
-  GPIO_InitStruct.Pin = A_left_tic_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING; /* set the pin to trigger on rising an falling edges*/
+  GPIO_InitStruct.Pin = A_left_tic_Pin | B_left_tic_Pin | Z_left_tic_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING; /* set the pin to trigger on rising an falling edges*/
   GPIO_InitStruct.Pull = GPIO_PULLUP;                 /* no internal pull up or down resistors + voltage*/
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 

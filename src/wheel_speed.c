@@ -7,7 +7,7 @@
 #include "main.h"
 #include "wheel_speed.h"
 
-#define COUNTS_PER_REVOLUTION 2048 // there are 2048 counts per revolution but we double it because channel A and B get double tiks
+#define COUNTS_PER_REVOLUTION 4096 // there are 2048 counts per revolution but we double it because channel A and B get double tiks
 #define T_OR_M_METHOD 0
 
 /*---------------------- Global constants for wheel speed calculating --------------------*/
@@ -24,15 +24,8 @@ int32_t last_A_right;
 int32_t last_B_left;
 int32_t last_B_right;
 
-volatile uint32_t prev_time_left = 0;
-volatile uint32_t cur_time_left = 0;
-volatile uint32_t prev_time_right = 0;
-volatile uint32_t cur_time_right = 0;
-
-
 
 /*---------------------- Functions for wheel speed calculating --------------------*/
-#if T_OR_M_METHOD == 1 
 float calculate_left_velocity(uint32_t delta_t){
     // Calculate deltas and average in one step
     int32_t left_count_delta = ((A_count_left - last_A_left) + (B_count_left - last_B_left)) >> 2;
@@ -73,9 +66,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
   // RIGHT SIDE: Counter-clockwise rotation has channel A leading channel B and is forward movement
   // LEFT SIDE: Clockwise rotation has channel A leading channel B and is forward movement
 
-  // Edge trigger on A left wheel
   switch (GPIO_Pin){
-  case A_left_tic_Pin:
+  case A_left_tic_Pin: // Edge trigger on A left wheel
     if (A_left_current == 1)
     { // Rising edge on A
       if (B_left_current == 1)
@@ -147,49 +139,3 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
     break;
   }
 }
-#elif T_OR_M_METHOD == 0
-
-float calculate_left_velocity(){
-  // Calculate time interval
-  uint32_t left_time_delta = cur_time_left - prev_time_left;
-
-  if (left_time_delta == 0){ // Add check to prevent division by 0
-    left_time_delta += 5;
-  }
-
-  // Calculate RPM values directly from time interval
-  float left_velocity = (60*1000)/((float)left_time_delta*COUNTS_PER_REVOLUTION);
-
-  return left_velocity; // return left wheel velocity in RPM
-}
-
-
-float calculate_right_velocity(){
-  // Calculate time interval
-  uint32_t right_time_delta = cur_time_right - prev_time_right;
-
-  if (right_time_delta == 0){ // Add check to prevent division by 0
-    right_time_delta += 5;
-  }
-
-  // Calculate RPM values directly from time interval
-  float right_velocity = (60*1000)/((float)right_time_delta*COUNTS_PER_REVOLUTION);
-
-  return right_velocity; // return right wheel velocity in RPM
-}
-
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
-  switch (GPIO_Pin){
-    case A_left_tic_Pin:
-      prev_time_left = cur_time_left;
-      cur_time_left = HAL_GetTick();
-      break;
-    
-    case A_right_tic_Pin:
-      prev_time_right = cur_time_right;
-      cur_time_right = HAL_GetTick();
-      break;
-  }
-}
-#endif
-
