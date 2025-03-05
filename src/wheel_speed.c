@@ -1,6 +1,6 @@
 /*Author: Sasha Ries
  * Date: 1/25/25
- * File: can.c
+ * File: wheel_speed.c
  * Description: defines all functions related to wheel speed calculation
  */
 
@@ -8,10 +8,8 @@
 #include "wheel_speed.h"
 
 #define COUNTS_PER_REVOLUTION 4096 // there are 2048 counts per revolution but we double it because channel A and B get double tiks
-#define T_OR_M_METHOD 0
 
-/*---------------------- Global constants for wheel speed calculating --------------------*/
-
+/*---------------------------------------------- Define Global Constants ---------------------------------------------*/
 // Keep track of current tik counts
 volatile int32_t A_count_left;
 volatile int32_t A_count_right;
@@ -25,7 +23,7 @@ int32_t last_B_left;
 int32_t last_B_right;
 
 
-/*---------------------- Functions for wheel speed calculating --------------------*/
+/*------------------------------------- Functions for wheel speed calculating ------------------------------------*/
 float calculate_left_velocity(uint32_t delta_t){
     // Calculate deltas and average in one step
     int32_t left_count_delta = ((A_count_left - last_A_left) + (B_count_left - last_B_left)) >> 2;
@@ -55,7 +53,7 @@ float calculate_right_velocity(uint32_t delta_t){
 }
 
 
-/* ----------- External hardware interrupt to count encoder tics in software ---------*/
+/* ------------------------- External hardware interrupt to count encoder tics in software ---------------------------*/
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
   // Read current state of all pins (high or low) for quadrature
   uint8_t A_left_current = HAL_GPIO_ReadPin(A_left_tic_GPIO_Port, A_left_tic_Pin);

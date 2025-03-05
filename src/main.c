@@ -28,11 +28,10 @@
 #include "can.h"
 #include "wheel_speed.h"
 
-#define SEND_INTERVAL 3           // milliseconds
+#define SEND_INTERVAL 10           // milliseconds
 
 
-/*----------------------------- Global structs -----------------------------*/
-
+/*-------------------------------------------------- Global structs --------------------------------------------------*/
 sample_window left_window = { // Initialize left sample window with all speeds = 0 and sample count = 0
     .data_array = {0},
     .position = 0};
@@ -44,6 +43,9 @@ sample_window right_window = { // Initialize right sample window with all speeds
 uint32_t last_send = 0; // Variable to keep track of time
 
 
+// Initialize IIR filter structs
+IIR_filter left_IIR;
+IIR_filter right_IIR;
 
 
 /* Private function prototypes -----------------------------------------------*/
@@ -54,8 +56,7 @@ static void MX_GPIO_Init(void);
  * @brief  The application entry point.
  * @retval int
  */
-int main(void)
-{
+int main(void){
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
 
@@ -66,17 +67,20 @@ int main(void)
   MX_GPIO_Init();
   MX_CAN_Init();
 
+  // Initialize IIR filters
+  IIR_filter_init(&left_IIR);
+  IIR_filter_init(&right_IIR);
+
   /* Infinite loop */
   while (1){
-    uint32_t now = HAL_GetTick();
+    uint32_t now = HAL_GetTick(); // Get current time
 
-    if (now - last_send >= SEND_INTERVAL)
-    {
+    if (now - last_send >= SEND_INTERVAL){
       uint32_t delta_t = now - last_send; // Find time elapsed since last sample period
 
       // Calculate velocities of both wheels in RPM
-      float left_velocity = calculate_left_velocity();
-      float right_velocity = calculate_right_velocity();
+      float left_velocity = calculate_left_velocity(delta_t);
+      float right_velocity = calculate_right_velocity(delta_t);
 
 
       // Filter the velocities
@@ -85,8 +89,8 @@ int main(void)
       float right_velocity_filtered = Roll_average(&right_window, right_velocity);
 #elif FILTER_TYPE == 0
       // Dont filter the velocities, just scale them up
-      left_velocity *= RPM_SCALE_FACTOR;
-      right_velocity *= RPM_SCALE_FACTOR;
+      float left_velocity_filtered = IIR_filter_update(&left_IIR, left_velocity);
+      float right_velocity_filtered = IIR_filter_update(&right_IIR, right_velocity);
 #endif
 
       // Scale it up (for testing purposes) ---- remove later
@@ -101,6 +105,7 @@ int main(void)
     }
   }
 }
+
 
 /**
  * @brief System Clock Configuration
